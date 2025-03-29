@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <title>Volcano Graph</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <div>
+    <div class="graph-container">
         {{ graph_html | safe }}
     </div>
 </body>

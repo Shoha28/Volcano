@@ -20,18 +20,20 @@ app = Flask(__name__)
 
 @app.route('/', methods=['GET'])
 def get_data():
+
     # Creating the graph
     fig = px.scatter(
         x=FCValues,
         y=neg_log10_pval,
         labels={"x": "Log2 Fold Change", "y": "-Log10 Adjusted P-Value"},
     ).update_layout(
-        # xaxis=dict(range=[-2, 2]),
         xaxis_title="Log2 Fold Change",
         yaxis_title="-Log10 Adjusted P-Value",
         title="Volcano Plot",
         template="plotly_white",
-        showlegend=False
+        showlegend=False,
+        plot_bgcolor="rgba(220,220,220,1)",
+        paper_bgcolor="rgba(220,220,220,1)"
     )
 
     # Rendering graph with HTML
