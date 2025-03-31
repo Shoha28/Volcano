@@ -2,12 +2,11 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Volcano Graph</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flask & Dash Integration</title>
 </head>
 <body>
-    <div class="graph-container">
-        {{ graph_html | safe }}
-    </div>
+    <h1>Welcome to the Flask-Dash Volcano Plot</h1>
+    <iframe src="/dashboard/" width="100%" height="600px" style="border:none;"></iframe>
 </body>
 </html>
