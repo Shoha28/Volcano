@@ -29,7 +29,6 @@ for i in range(len(data_values)):
 
     protein_dict[protein_name] = {"Young": young_donors, "Old": old_donors}
 
-print(protein_dict["PIAS4"])
 
 
 

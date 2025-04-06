@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 from flask import Flask, render_template
+from boxplot import protein_dict
 
 # Extract excel data into a numpy array
 xlData = pd.read_excel("../data/NIHMS1635539-supplement-1635539_Sup_tab_4.xlsx", sheet_name="S4B limma results")
@@ -41,50 +42,87 @@ fig = go.FigureWidget(
 
 # Layout
 app.layout = html.Div([
-    html.H1("Interactive Volcano Plot"),
 
     html.Div([
-        dcc.Graph(id="volcano-plot", figure=fig, style={"width": "100%", "height": "600px"}),
+        dcc.Graph(id="volcano-plot", figure=fig, style={"width": "100%", "height": "100vh", "overflow": "visible"}),
 
         # Small Overlay Graph
         html.Div([
-            dcc.Graph(id="selected-gene-plot", style={"width": "400px", "height": "300px"}),
+            dcc.Graph(id="selected-gene-plot"),
             html.Button("Close", id="close-button", style={"marginTop": "10px", "display": "block"})
         ], id="overlay-graph", style={"display": "none"})  # Hidden initially
-    ], style={"position": "relative"}),
+    ], style={"position": "relative", "maxWidth": "60vw", "margin": "0 auto"}),
 
-    html.Div(id="click-output", style={"fontSize": "20px", "marginTop": "20px"})
+
 ])
 
 # Callback for Showing/Hiding Graph
+
 @app.callback(
-    [Output("click-output", "children"),
-     Output("selected-gene-plot", "figure"),
+    [Output("selected-gene-plot", "figure"),
      Output("overlay-graph", "style")],
     [Input("volcano-plot", "clickData"),
      Input("close-button", "n_clicks")],
     [State("overlay-graph", "style")]  # Keeps track of overlay state
 )
 def toggle_overlay(clickData, close_clicks, current_style):
-
-
     ctx = dash.callback_context
+
     if ctx.triggered and ctx.triggered[0]["prop_id"].startswith("close-button"):
-        return "Click on a point to see details.", go.Figure(), {"display": "none"}
+        return go.Figure(), {"display": "none"}
 
     if clickData is None:
-        return "Click on a point to see details.", go.Figure(), {"display": "none"}
+        return go.Figure(), {"display": "none"}
 
-    # Extract clicked point details
-    gene_name = clickData["points"][0]["customdata"]
+    protein_name = clickData["points"][0]["customdata"]
 
-    # Create mini graph
+    young_data = [float(val) for val in protein_dict[protein_name]["Young"]]
+    old_data = [float(val) for val in protein_dict[protein_name]["Old"]]
+
+
+    # Create a figure with two boxplots
     mini_plot = go.Figure()
-    mini_plot.add_trace(go.Bar(x=["Cond1", "Cond2"], y=[np.random.randint(50, 100), np.random.randint(50, 100)]))
-    mini_plot.update_layout(title=f"Gene Expression for {gene_name}")
 
-    return f"Gene: {gene_name}", mini_plot, {"display": "block", "position": "absolute", "top": "50px", "left": "50px",
-                                             "background": "white", "border": "2px solid black", "padding": "10px"}
+    mini_plot.add_trace(go.Box(
+        y=young_data,
+        name="Young",
+        marker_color="blue"
+    ))
+
+    mini_plot.add_trace(go.Box(
+        y=old_data,
+        name="Old",
+        marker_color="red"
+    ))
+
+    mini_plot.update_layout(
+        title=f"Expression Levels for {protein_name}",
+        xaxis_title="Condition",
+        yaxis_title="Expression Level",
+        showlegend=True,
+        xaxis=dict(
+            tickmode="array",
+            tickvals=[0, 1],
+            ticktext=["Young", "Old"],
+        ),
+        height=500,  # Specify a height for the plot itself (in pixels)
+        width=500,  # Specify a width for the plot itself (in pixels)
+        autosize=True
+    )
+
+
+    return mini_plot, {
+        "display": "block",
+        "position": "fixed",
+        "top": "50%",
+        "left": "50%",
+        "transform": "translate(-50%, -50%)",
+        "background": "white",
+        "border": "2px solid black",
+        "padding": "10px",
+        "boxShadow": "0 4px 10px rgba(0, 0, 0, 0.3)",
+        "zIndex": 1000
+    }
 
 # Flask route
 @server.route("/")
